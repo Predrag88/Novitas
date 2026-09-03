@@ -26,7 +26,7 @@ const dateFormatter = new Intl.DateTimeFormat('sr-RS', { day: 'numeric', month: 
       <div class="mb-2 flex items-center gap-3 text-xs uppercase tracking-wide text-slate-500">
         <span>{dateFormatter.format(post.data.pubDate)}</span>
         {post.data.category && (
-          <span class="rounded-full bg-rose-50 px-2 py-0.5 font-medium text-rose-700">
+          <span class="rounded-full bg-secondary-light px-2 py-0.5 font-medium text-secondary">
             {post.data.category}
           </span>
         )}
@@ -42,7 +42,7 @@ const dateFormatter = new Intl.DateTimeFormat('sr-RS', { day: 'numeric', month: 
       />
     )}
 
-    <div class="prose prose-slate max-w-none">
+    <div class="prose prose-slate max-w-none prose-a:text-secondary prose-a:no-underline hover:prose-a:underline">
       <Content />
     </div>
   </article>

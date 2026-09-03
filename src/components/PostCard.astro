@@ -22,12 +22,12 @@ const dateFormatter = new Intl.DateTimeFormat('sr-RS', { day: 'numeric', month: 
       <div class="mb-2 flex items-center gap-3 text-xs uppercase tracking-wide text-slate-500">
         <span>{dateFormatter.format(pubDate)}</span>
         {category && (
-          <span class="rounded-full bg-rose-50 px-2 py-0.5 font-medium text-rose-700">
+          <span class="rounded-full bg-secondary-light px-2 py-0.5 font-medium text-secondary">
             {category}
           </span>
         )}
       </div>
-      <h2 class="mb-2 text-lg font-semibold leading-snug group-hover:underline">{title}</h2>
+      <h2 class="mb-2 text-lg font-semibold leading-snug group-hover:text-primary group-hover:underline">{title}</h2>
       <p class="line-clamp-3 text-sm text-slate-600">{description}</p>
     </div>
   </a>

@@ -1,2 +1,11 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/* Brand boje uzete direktno iz originalnog WordPress sajta
+   (Flatsome theme_mods: color_primary / color_secondary). */
+@theme {
+  --color-primary: #810d70;
+  --color-primary-dark: #5e0952;
+  --color-secondary: #c32b93;
+  --color-secondary-light: #fdf1f9;
+}
