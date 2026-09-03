@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  return pages.map((page) => ({
+    params: { slug: page.id },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+const { Content } = await render(page);
+---
+
+<Layout title={`${page.data.title} — Vidljiva.rs`} description={page.data.description}>
+  <article>
+    <h1 class="mb-8 text-3xl font-bold tracking-tight">{page.data.title}</h1>
+
+    {page.data.heroImage && (
+      <img
+        src={page.data.heroImage}
+        alt={page.data.title}
+        class="mb-8 w-full rounded-lg object-cover"
+      />
+    )}
+
+    <div class="prose prose-slate max-w-none">
+      <Content />
+    </div>
+  </article>
+</Layout>

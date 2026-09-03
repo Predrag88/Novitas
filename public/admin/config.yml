@@ -21,5 +21,23 @@ collections:
       - { label: "Opis", name: "description", widget: "text" }
       - { label: "Datum objave", name: "pubDate", widget: "datetime" }
       - { label: "Naslovna slika", name: "heroImage", widget: "image", required: false }
+      - label: "Kategorija"
+        name: "category"
+        widget: "select"
+        required: false
+        options: ["Radionice", "Medijski prostor", "Vesti", "Dokumenti"]
       - { label: "Draft", name: "draft", widget: "boolean", default: false }
+      - { label: "Sadržaj", name: "body", widget: "markdown" }
+
+  - name: "pages"
+    label: "Stranice"
+    folder: "src/content/pages"
+    create: true
+    slug: "{{slug}}"
+    extension: "md"
+    format: "frontmatter"
+    fields:
+      - { label: "Naslov", name: "title", widget: "string" }
+      - { label: "Opis", name: "description", widget: "text" }
+      - { label: "Naslovna slika", name: "heroImage", widget: "image", required: false }
       - { label: "Sadržaj", name: "body", widget: "markdown" }

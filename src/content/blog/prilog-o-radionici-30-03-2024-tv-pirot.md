@@ -2,6 +2,7 @@
 title: "Prilog o radionici 30.03.2024. TV Pirot"
 description: "https://youtu.be/qxv_8ihoz2k?si=9Xlo0-X8jXeELZnk"
 pubDate: 2024-05-16
+category: "Medijski prostor"
 draft: false
 ---
 

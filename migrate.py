@@ -25,6 +25,7 @@ UPLOADS_PREFIX = "public_html/public_html/wp-content/uploads/"
 ALLOWED_IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp", ".svg", ".gif"}
 
 CONTENT_DIR = Path("src/content/blog")
+PAGES_CONTENT_DIR = Path("src/content/pages")
 IMAGES_DIR = Path("public/images/posts")
 
 WP_POSTS_COLUMNS = [
@@ -35,6 +36,26 @@ WP_POSTS_COLUMNS = [
     "post_mime_type", "comment_count",
 ]
 WP_POSTMETA_COLUMNS = ["meta_id", "post_id", "meta_key", "meta_value"]
+WP_TERMS_COLUMNS = ["term_id", "name", "slug", "term_group"]
+WP_TERM_TAXONOMY_COLUMNS = ["term_taxonomy_id", "term_id", "taxonomy", "description", "parent", "count"]
+WP_TERM_RELATIONSHIPS_COLUMNS = ["object_id", "term_taxonomy_id", "term_order"]
+
+# WP kategorija (izvorno ime u bazi, uklj. tipfeler "Medjiski prostor") -> ispravljen naziv/slug
+# koji koristimo na sajtu. Ove 4 kategorije u originalnom WP-u odgovaraju posebnim
+# stranicama (Medijski prostor, Vesti, Dokumenti, Radionice/Blog) koje su svaka samo
+# [blog_posts cat="X"] filter - na Astro sajtu to postaju /kategorija/<slug>/ stranice.
+CATEGORY_NORMALIZE = {
+    "Radionice": ("Radionice", "radionice"),
+    "Medjiski prostor": ("Medijski prostor", "medijski-prostor"),
+    "Vesti": ("Vesti", "vesti"),
+    "Dokumenti": ("Dokumenti", "dokumenti"),
+}
+
+# Prave WP stranice (post_type='page') koje rekonstruisemo kao Astro stranice.
+# 'Blog'(22)/'Medijski prostor'(2355)/'Vesti'(2390)/'Dokumenti'(2445) NISU ovde jer
+# su to u WP-u bile cisto [blog_posts cat=X] filter-stranice - te postaju
+# /kategorija/<slug>/ stranice generisane iz kategorije posta, ne staticki sadrzaj.
+STATIC_PAGE_IDS = ["2191", "1731", "2456", "2522", "2233"]
 
 
 # ---------------------------------------------------------------------------
@@ -173,18 +194,40 @@ def extract_image(member, dest_path: Path):
 GUTENBERG_COMMENT_RE = re.compile(r"<!--\s*/?wp:[^>]*-->")
 SHORTCODE_RE = re.compile(r"\[/?[a-zA-Z][^\]\[]*\]")
 UPLOADS_URL_RE = re.compile(r"(?:https?://[^/\"'\s]+)?/?wp-content/uploads/[0-9]{4}/[0-9]{2}/([^\"'\s)]+)")
+UX_VIDEO_RE = re.compile(r'\[ux_video\s+url="([^"]+)"[^\]]*\]')
+BG_ID_RE = re.compile(r'bg="(\d+)"')
+
+
+def _video_shortcode_to_placeholder(html: str) -> str:
+    """[ux_video url="https://youtube..."] -> pravi <a> tag (ne obican tekst!), da bi ga
+    markdownify pretvorio u [Pogledaj video](url) BEZ escape-ovanja '_' unutar URL-a
+    (markdownify escape-uje markdown specijalne karaktere samo u tekstualnim cvorovima,
+    ne u href atributima). Nikad ne generisemo <iframe> u izlazu (bezbednosno pravilo),
+    pa i legitimne YouTube embed-ove pretvaramo u obicne linkove.
+    """
+    return UX_VIDEO_RE.sub(lambda m: f'\n\n<a href="{m.group(1)}">Pogledaj video</a>\n\n', html)
 
 
 def clean_html_to_markdown(html: str) -> str:
     from bs4 import BeautifulSoup
     from markdownify import markdownify as md
 
+    html = _video_shortcode_to_placeholder(html)
     html = GUTENBERG_COMMENT_RE.sub("", html)
     html = SHORTCODE_RE.sub("", html)
 
     soup = BeautifulSoup(html, "html.parser")
 
-    for tag in soup.find_all(["script", "iframe", "style"]):
+    for tag in soup.find_all("iframe"):
+        src = tag.get("src", "")
+        if src.startswith("https://") or src.startswith("http://"):
+            link = soup.new_tag("a", href=src)
+            link.string = "Otvori"
+            tag.replace_with(link)
+        else:
+            tag.decompose()
+
+    for tag in soup.find_all(["script", "style"]):
         tag.decompose()
 
     for tag in soup.find_all(True):
@@ -193,6 +236,11 @@ def clean_html_to_markdown(html: str) -> str:
         for attr in list(tag.attrs):
             if attr.startswith("on"):  # onclick, onerror, itd.
                 del tag[attr]
+
+    for tag in soup.find_all("img"):
+        if not tag.get("src"):
+            # WP page-builder "spacer"/zero-width markup bez src-a - nema stvarni sadrzaj
+            tag.decompose()
 
     for tag in soup.find_all(["img"]):
         src = tag.get("src", "")
@@ -239,29 +287,58 @@ def yaml_escape(s: str) -> str:
 # Glavna logika
 # ---------------------------------------------------------------------------
 
+def _load_wp_tables(sql_text):
+    posts = [dict(zip(WP_POSTS_COLUMNS, r)) for r in iter_insert_rows(sql_text, "wp_posts")
+             if len(r) == len(WP_POSTS_COLUMNS)]
+    postmeta = [dict(zip(WP_POSTMETA_COLUMNS, r)) for r in iter_insert_rows(sql_text, "wp_postmeta")
+                if len(r) == len(WP_POSTMETA_COLUMNS)]
+    terms = [dict(zip(WP_TERMS_COLUMNS, r)) for r in iter_insert_rows(sql_text, "wp_terms")
+             if len(r) == len(WP_TERMS_COLUMNS)]
+    term_taxonomy = [dict(zip(WP_TERM_TAXONOMY_COLUMNS, r)) for r in iter_insert_rows(sql_text, "wp_term_taxonomy")
+                      if len(r) == len(WP_TERM_TAXONOMY_COLUMNS)]
+    term_relationships = [dict(zip(WP_TERM_RELATIONSHIPS_COLUMNS, r))
+                           for r in iter_insert_rows(sql_text, "wp_term_relationships")
+                           if len(r) == len(WP_TERM_RELATIONSHIPS_COLUMNS)]
+    return posts, postmeta, terms, term_taxonomy, term_relationships
+
+
+def _build_category_map(terms, term_taxonomy, term_relationships):
+    """post_id -> (naziv, slug) za primarnu WP kategoriju tog posta (preskace 'Uncategorized')."""
+    term_by_id = {t["term_id"]: t for t in terms}
+    cat_name_by_tt_id = {}
+    for tt in term_taxonomy:
+        if tt["taxonomy"] == "category":
+            term = term_by_id.get(tt["term_id"])
+            if term:
+                cat_name_by_tt_id[tt["term_taxonomy_id"]] = term["name"]
+
+    category_of = {}
+    for rel in term_relationships:
+        raw_name = cat_name_by_tt_id.get(rel["term_taxonomy_id"])
+        if raw_name is None:
+            continue
+        normalized = CATEGORY_NORMALIZE.get(raw_name)
+        if normalized is None:
+            continue  # npr. 'Uncategorized' - nema odgovarajucu stranicu, preskacemo
+        if rel["object_id"] not in category_of:
+            category_of[rel["object_id"]] = normalized
+    return category_of
+
+
 def build_posts():
     sql_text = read_sql_dump()
-
-    posts_raw = list(iter_insert_rows(sql_text, "wp_posts"))
-    postmeta_raw = list(iter_insert_rows(sql_text, "wp_postmeta"))
-
-    posts = []
-    for row in posts_raw:
-        if len(row) != len(WP_POSTS_COLUMNS):
-            continue
-        posts.append(dict(zip(WP_POSTS_COLUMNS, row)))
+    posts, postmeta, terms, term_taxonomy, term_relationships = _load_wp_tables(sql_text)
 
     thumbnail_of = {}
     attached_file = {}
-    for row in postmeta_raw:
-        if len(row) != len(WP_POSTMETA_COLUMNS):
-            continue
-        meta = dict(zip(WP_POSTMETA_COLUMNS, row))
+    for meta in postmeta:
         key = meta["meta_key"]
         if key == "_thumbnail_id":
             thumbnail_of[meta["post_id"]] = meta["meta_value"]
         elif key == "_wp_attached_file":
             attached_file[meta["post_id"]] = meta["meta_value"]
+
+    category_of = _build_category_map(terms, term_taxonomy, term_relationships)
 
     published = [p for p in posts if p["post_type"] == "post" and p["post_status"] == "publish"]
     published.sort(key=lambda p: p["post_date"])
@@ -271,6 +348,7 @@ def build_posts():
         thumb_id = thumbnail_of.get(p["ID"])
         rel_path = attached_file.get(thumb_id) if thumb_id else None
         hero = f"/images/posts/{Path(rel_path).name}" if rel_path else None
+        cat_name, cat_slug = category_of.get(p["ID"], (None, None))
         enriched.append({
             "id": p["ID"],
             "title": p["post_title"],
@@ -280,20 +358,67 @@ def build_posts():
             "excerpt": p["post_excerpt"],
             "hero_rel_path": rel_path,
             "hero_image": hero,
+            "category": cat_name,
+            "category_slug": cat_slug,
         })
     return enriched
 
 
-def report(posts):
+def build_pages():
+    sql_text = read_sql_dump()
+    posts, postmeta, terms, term_taxonomy, term_relationships = _load_wp_tables(sql_text)
+    by_id = {p["ID"]: p for p in posts}
+    attached_file = {m["post_id"]: m["meta_value"] for m in postmeta if m["meta_key"] == "_wp_attached_file"}
+
+    pages = []
+    for pid in STATIC_PAGE_IDS:
+        p = by_id.get(pid)
+        if p is None or p["post_status"] != "publish":
+            continue
+        bg_ids = BG_ID_RE.findall(p["post_content"])
+        hero_rel_path = None
+        for bg_id in bg_ids:
+            if bg_id in attached_file:
+                hero_rel_path = attached_file[bg_id]
+                break
+        hero = f"/images/posts/{Path(hero_rel_path).name}" if hero_rel_path else None
+        pages.append({
+            "id": p["ID"],
+            "title": p["post_title"],
+            "slug": p["post_name"],
+            "content": p["post_content"],
+            "excerpt": p["post_excerpt"],
+            "hero_rel_path": hero_rel_path,
+            "hero_image": hero,
+        })
+    return pages
+
+
+def report(posts, pages):
     print(f"\nPronadjeno {len(posts)} objavljenih postova (post_type='post', post_status='publish'):\n")
     for p in posts:
         hero_note = "sa hero slikom" if p["hero_image"] else "BEZ hero slike"
-        print(f"  - [{p['date'][:10]}] {p['title']}  (slug: {p['slug']}, {hero_note})")
+        cat_note = p["category"] or "bez kategorije"
+        print(f"  - [{p['date'][:10]}] {p['title']}  (slug: {p['slug']}, kategorija: {cat_note}, {hero_note})")
+    print(f"\nPronadjeno {len(pages)} statickih stranica:\n")
+    for p in pages:
+        hero_note = "sa hero slikom" if p["hero_image"] else "bez hero slike"
+        print(f"  - {p['title']}  (slug: {p['slug']}, {hero_note})")
     print()
 
 
-def write_output(posts):
+# Slike koje homepage koristi direktno (hero banner, about sekcija, itd.) - nisu
+# referencirane ni u jednom generisanom .md fajlu, pa ih eksplicitno trazimo po imenu.
+HOMEPAGE_IMAGES = {
+    "vidljivahomebanner003.jpg",  # Hero banner
+    "vidljivahomebanner3.jpg",    # About sekcija
+    "slika2.jpg",                 # Testimonials/workshop CTA sekcija
+}
+
+
+def write_output(posts, pages):
     CONTENT_DIR.mkdir(parents=True, exist_ok=True)
+    PAGES_CONTENT_DIR.mkdir(parents=True, exist_ok=True)
     IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
     valid_images = list_valid_image_members()
@@ -301,11 +426,19 @@ def write_output(posts):
     for rel, member in valid_images:
         by_basename.setdefault(Path(rel).name, []).append((rel, member))
 
-    referenced_basenames = set()
+    referenced_basenames = set(HOMEPAGE_IMAGES)
     md_bodies = {}
     for p in posts:
         md_bodies[p["id"]] = clean_html_to_markdown(p["content"])
         for m in re.finditer(r"/images/posts/([^\s\"'()]+)", md_bodies[p["id"]]):
+            referenced_basenames.add(m.group(1))
+        if p["hero_image"]:
+            referenced_basenames.add(Path(p["hero_image"]).name)
+
+    page_md_bodies = {}
+    for p in pages:
+        page_md_bodies[p["id"]] = clean_html_to_markdown(p["content"])
+        for m in re.finditer(r"/images/posts/([^\s\"'()]+)", page_md_bodies[p["id"]]):
             referenced_basenames.add(m.group(1))
         if p["hero_image"]:
             referenced_basenames.add(Path(p["hero_image"]).name)
@@ -343,6 +476,7 @@ def write_output(posts):
         hero_line = f'heroImage: "{p["hero_image"]}"\n' if p["hero_image"] else ""
         if not p["hero_image"]:
             no_hero.append(p["title"])
+        category_line = f'category: "{p["category"]}"\n' if p["category"] else ""
 
         frontmatter = (
             "---\n"
@@ -350,6 +484,7 @@ def write_output(posts):
             f'description: "{description}"\n'
             f"pubDate: {pub_date}\n"
             f"{hero_line}"
+            f"{category_line}"
             "draft: false\n"
             "---\n\n"
         )
@@ -357,7 +492,30 @@ def write_output(posts):
         out_path.write_text(frontmatter + md_bodies[p["id"]], encoding="utf-8")
         written += 1
 
-    print(f"\nGenerisano {written} .md fajlova u {CONTENT_DIR}/")
+    pages_written = 0
+    for p in pages:
+        title = yaml_escape(p["title"])
+        excerpt = p["excerpt"].strip()
+        if excerpt:
+            description = strip_tags_for_excerpt(excerpt)
+        else:
+            description = strip_tags_for_excerpt(p["content"])[:160].rsplit(" ", 1)[0]
+        description = yaml_escape(description)
+        hero_line = f'heroImage: "{p["hero_image"]}"\n' if p["hero_image"] else ""
+
+        frontmatter = (
+            "---\n"
+            f'title: "{title}"\n'
+            f'description: "{description}"\n'
+            f"{hero_line}"
+            "---\n\n"
+        )
+        out_path = PAGES_CONTENT_DIR / f"{p['slug']}.md"
+        out_path.write_text(frontmatter + page_md_bodies[p["id"]], encoding="utf-8")
+        pages_written += 1
+
+    print(f"\nGenerisano {written} blog .md fajlova u {CONTENT_DIR}/")
+    print(f"Generisano {pages_written} stranica u {PAGES_CONTENT_DIR}/")
     print(f"Kopirano {copied} slika u {IMAGES_DIR}/ (od {len(referenced_basenames)} referenciranih)")
     if skipped_missing:
         print(f"UPOZORENJE: {len(skipped_missing)} referenciranih slika nije pronadjeno u uploads/: {skipped_missing}")
@@ -377,11 +535,12 @@ def main():
         sys.exit(1)
 
     posts = build_posts()
+    pages = build_pages()
 
     if args.report:
-        report(posts)
+        report(posts, pages)
     elif args.write:
-        write_output(posts)
+        write_output(posts, pages)
 
 
 if __name__ == "__main__":

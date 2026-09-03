@@ -1,0 +1,34 @@
+---
+interface Props {
+  slug: string;
+  title: string;
+  description: string;
+  pubDate: Date;
+  heroImage?: string;
+  category?: string;
+}
+
+const { slug, title, description, pubDate, heroImage, category } = Astro.props;
+
+const dateFormatter = new Intl.DateTimeFormat('sr-RS', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<li class="group overflow-hidden rounded-lg border border-slate-200 transition hover:shadow-md">
+  <a href={`/blog/${slug}/`} class="block">
+    {heroImage && (
+      <img src={heroImage} alt={title} class="h-48 w-full object-cover" loading="lazy" />
+    )}
+    <div class="p-5">
+      <div class="mb-2 flex items-center gap-3 text-xs uppercase tracking-wide text-slate-500">
+        <span>{dateFormatter.format(pubDate)}</span>
+        {category && (
+          <span class="rounded-full bg-rose-50 px-2 py-0.5 font-medium text-rose-700">
+            {category}
+          </span>
+        )}
+      </div>
+      <h2 class="mb-2 text-lg font-semibold leading-snug group-hover:underline">{title}</h2>
+      <p class="line-clamp-3 text-sm text-slate-600">{description}</p>
+    </div>
+  </a>
+</li>

@@ -2,6 +2,7 @@
 title: "Radionice 16.03.2024. Pi canal"
 description: "https://www.pikanal.rs/2024/03/18/zene-u-fokusu-podrska-medijskoj-vidljivosti/ Izveštaj Pi kanala o održanoj"
 pubDate: 2024-05-16
+category: "Medijski prostor"
 draft: false
 ---
 

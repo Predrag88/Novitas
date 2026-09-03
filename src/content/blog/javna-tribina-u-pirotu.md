@@ -2,6 +2,7 @@
 title: "Javna tribina u Pirotu"
 description: "U okviru projekta\" Žene u fokusu-podrška medijskoj vidljivosti\" održaće se javna tribina na kojoj će se govoriti o zastupljenosti žena u medijima. Biće"
 pubDate: 2024-09-06
+category: "Vesti"
 draft: false
 ---
 

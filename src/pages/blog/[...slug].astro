@@ -17,15 +17,20 @@ const dateFormatter = new Intl.DateTimeFormat('sr-RS', { day: 'numeric', month: 
 ---
 
 <Layout title={`${post.data.title} — Vidljiva.rs`} description={post.data.description}>
-  <a href="/" class="mb-8 inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">
+  <a href="/blog/" class="mb-8 inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">
     ← Nazad na listu
   </a>
 
   <article>
     <header class="mb-8">
-      <p class="mb-2 text-xs uppercase tracking-wide text-slate-500">
-        {dateFormatter.format(post.data.pubDate)}
-      </p>
+      <div class="mb-2 flex items-center gap-3 text-xs uppercase tracking-wide text-slate-500">
+        <span>{dateFormatter.format(post.data.pubDate)}</span>
+        {post.data.category && (
+          <span class="rounded-full bg-rose-50 px-2 py-0.5 font-medium text-rose-700">
+            {post.data.category}
+          </span>
+        )}
+      </div>
       <h1 class="text-3xl font-bold tracking-tight">{post.data.title}</h1>
     </header>
 
@@ -42,7 +47,7 @@ const dateFormatter = new Intl.DateTimeFormat('sr-RS', { day: 'numeric', month: 
     </div>
   </article>
 
-  <a href="/" class="mt-10 inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">
+  <a href="/blog/" class="mt-10 inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">
     ← Nazad na listu
   </a>
 </Layout>

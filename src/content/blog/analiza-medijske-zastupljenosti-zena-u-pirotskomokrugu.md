@@ -2,6 +2,7 @@
 title: "Analiza medijske zastupljenosti žena u Pirotskomokrugu"
 description: "Analiza medijske vidljivosti žena u Pirotskom okrugu"
 pubDate: 2024-09-24
+category: "Dokumenti"
 draft: false
 ---
 

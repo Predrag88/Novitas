@@ -3,6 +3,7 @@ title: "Radionica 16.3.2024"
 description: "Prva od dve predvidjene radionice u okviru projekta“Žene u fokusu-podrška medjskoj vidljivosti!“, održana je 16.03.2024. u Pirotu. Cilj radionice je"
 pubDate: 2024-03-16
 heroImage: "/images/posts/slika3.jpg"
+category: "Radionice"
 draft: false
 ---
 

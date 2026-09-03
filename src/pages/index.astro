@@ -1,42 +1,122 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import PostCard from '../components/PostCard.astro';
 import { getCollection } from 'astro:content';
 
-const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-);
+const workshopPosts = (await getCollection('blog', ({ data }) => !data.draft && data.category === 'Radionice'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 2);
 
-const dateFormatter = new Intl.DateTimeFormat('sr-RS', { day: 'numeric', month: 'long', year: 'numeric' });
+const stats = [
+  { value: '30%', text: 'Oko 30% žena u lokalnim medijima predstavljeno je u stereotipnim ulogama, poput majki.' },
+  { value: '1/5', text: 'U političkim emisijama na lokalnim medijima, jedna od pet osoba koja se pojavljuje kao gost ili ekspert je žena.' },
+  { value: '60%', text: 'Oko 60% žena u lokalnim medijima predstavljeno je kroz oblasti kulture, obrazovanja i zdravstva.' },
+  { value: '12/20', text: 'Od 20 žena koje su učestvovale u radionicama za medijsko osnaživanje, njih 12 je izrazilo nezadovoljstvo vidljivošću žena u medijima.' },
+];
 ---
 
-<Layout title="Vidljiva.rs — Blog">
-  <h1 class="mb-8 text-3xl font-bold tracking-tight">Blog</h1>
+<Layout title="Vidljiva.rs — Podrška medijskoj vidljivosti žena">
+  <section class="-mx-4 -mt-10 grid grid-cols-1 items-center gap-0 overflow-hidden sm:grid-cols-2">
+    <img
+      src="/images/posts/vidljivahomebanner003.jpg"
+      alt="Vidljiva"
+      class="h-64 w-full object-cover sm:h-[420px]"
+    />
+    <div class="bg-rose-50 px-6 py-10 sm:h-[420px] sm:px-10">
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">VIDLJIVA</h1>
+      <p class="mt-4 text-lg text-slate-700">
+        Podrška osnaživanju i većoj vidljivosti žena u medijima.
+      </p>
+    </div>
+  </section>
 
-  <ul class="grid grid-cols-1 gap-8 sm:grid-cols-2">
-    {
-      posts.map((post) => (
-        <li class="group overflow-hidden rounded-lg border border-slate-200 transition hover:shadow-md">
-          <a href={`/blog/${post.id}/`} class="block">
-            {post.data.heroImage && (
-              <img
-                src={post.data.heroImage}
-                alt={post.data.title}
-                class="h-48 w-full object-cover"
-                loading="lazy"
-              />
-            )}
-            <div class="p-5">
-              <p class="mb-2 text-xs uppercase tracking-wide text-slate-500">
-                {dateFormatter.format(post.data.pubDate)}
-              </p>
-              <h2 class="mb-2 text-lg font-semibold leading-snug group-hover:underline">
-                {post.data.title}
-              </h2>
-              <p class="line-clamp-3 text-sm text-slate-600">{post.data.description}</p>
-            </div>
-          </a>
-        </li>
-      ))
-    }
-  </ul>
+  <section class="border-b border-slate-200 bg-slate-50 py-6">
+    <p class="mx-auto max-w-3xl px-4 text-center text-sm text-slate-600">
+      Projekat „Žene u fokusu - podrška medijskoj vidljivosti!“ se realizuje u okviru Programa malih
+      medijskih grantova koji finansira Ambasada SAD, a administrira Media i Reform Centar Niš. Stavovi,
+      mišljenja i zaključci izneseni u projektu nužno ne izražavaju stavove MRCN i Ambasade SAD već
+      isključivo autora.
+    </p>
+  </section>
+
+  <section class="grid grid-cols-1 items-center gap-8 py-14 sm:grid-cols-2 sm:gap-12">
+    <img
+      src="/images/posts/vidljivahomebanner3.jpg"
+      alt="O projektu"
+      class="h-80 w-full rounded-lg object-cover"
+    />
+    <div>
+      <h2 class="text-2xl font-semibold text-slate-900">O projektu</h2>
+      <p class="mt-4 text-slate-700">
+        Projekat „Žene u fokusu - podrška medijskoj vidljivosti“ adresira nedostatak zastupljenosti žena
+        u medijima, posebno u manjim sredinama poput Pirotskog okruga. Kroz dokumentarni serijal
+        „VIDLJIVA“, ističemo ženske priče i izazove u lokalnoj zajednici. Projekat uključuje radionice i
+        javnu tribinu kako bi osnažio žene da se izraze. Cilj je promeniti percepciju žena u medijima i
+        prikazati ih kao uspešne borke za svoja prava.
+      </p>
+      <a
+        href="/zene-u-fokusu-podrska-medijskoj-vidljivosti/"
+        class="mt-6 inline-block border-b-2 border-rose-600 text-sm font-medium text-rose-700 hover:text-rose-900"
+      >
+        Saznaj više
+      </a>
+    </div>
+  </section>
+
+  <section class="border-y border-slate-200 py-14">
+    <ul class="grid grid-cols-2 gap-8 text-center sm:grid-cols-4">
+      {
+        stats.map((s) => (
+          <li>
+            <p class="text-3xl font-bold text-rose-700">{s.value}</p>
+            <p class="mt-2 text-sm text-slate-600">{s.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="grid grid-cols-1 items-center gap-8 py-14 sm:grid-cols-2 sm:gap-12">
+    <img
+      src="/images/posts/slika2.jpg"
+      alt="Radionice za medijsko osnaživanje žena"
+      class="h-80 w-full rounded-lg object-cover sm:order-2"
+    />
+    <div class="sm:order-1">
+      <h2 class="text-xl font-semibold uppercase tracking-wide text-slate-900">
+        Radionice za medijsko osnaživanje žena
+      </h2>
+      <p class="mt-4 text-slate-700">
+        Pozivamo sve zainteresovane žene da se prijave za radionice koje organizujemo sa ciljem
+        informisanja, sticanja i unapređenja veština žena u komunikaciji sa medijima. Ciljane oblasti:
+        aktivizam i civilno društvo, privreda, zdravstvo i socijalna politika, kultura i obrazovanje i
+        životna sredina. Broj učesnica je ograničen.
+      </p>
+      <p class="mt-4 text-sm text-slate-500">
+        Prijave slati na mejl organizacije: <strong>novitas.razvoj@gmail.com</strong>
+      </p>
+    </div>
+  </section>
+
+  <section class="py-14">
+    <div class="mb-8 flex items-center justify-between">
+      <h2 class="text-2xl font-semibold text-slate-900">Radionice</h2>
+      <a href="/kategorija/radionice/" class="border-b-2 border-rose-600 text-sm font-medium text-rose-700 hover:text-rose-900">
+        Pogledaj sve
+      </a>
+    </div>
+    <ul class="grid grid-cols-1 gap-8 sm:grid-cols-2">
+      {
+        workshopPosts.map((post) => (
+          <PostCard
+            slug={post.id}
+            title={post.data.title}
+            description={post.data.description}
+            pubDate={post.data.pubDate}
+            heroImage={post.data.heroImage}
+          />
+        ))
+      }
+    </ul>
+  </section>
 </Layout>
