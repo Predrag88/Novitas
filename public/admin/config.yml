@@ -1,0 +1,25 @@
+local_backend:
+  url: "http://localhost:8083/api/v1"
+
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "public/images/posts"
+public_folder: "/images/posts"
+
+collections:
+  - name: "blog"
+    label: "Blog"
+    folder: "src/content/blog"
+    create: true
+    slug: "{{slug}}"
+    extension: "md"
+    format: "frontmatter"
+    fields:
+      - { label: "Naslov", name: "title", widget: "string" }
+      - { label: "Opis", name: "description", widget: "text" }
+      - { label: "Datum objave", name: "pubDate", widget: "datetime" }
+      - { label: "Naslovna slika", name: "heroImage", widget: "image", required: false }
+      - { label: "Draft", name: "draft", widget: "boolean", default: false }
+      - { label: "Sadržaj", name: "body", widget: "markdown" }
