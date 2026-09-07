@@ -29,31 +29,52 @@ const navLinks = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap"
+      rel="stylesheet"
+    />
     <title>{title}</title>
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   </head>
-  <body class="flex min-h-screen flex-col bg-white text-slate-900">
-    <header class="border-b border-slate-200">
-      <nav class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-8 gap-y-3 px-4 py-5">
-        <a href="/" class="flex items-center gap-2">
-          <img src="/images/logo-novitas.png" alt="Novitas" class="h-10 w-auto" />
-          <span class="text-lg font-semibold tracking-tight text-primary">Vidljiva.rs</span>
+  <body class="flex min-h-screen flex-col bg-paper text-ink">
+    <script>
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on('init', (user) => {
+          if (!user) {
+            window.netlifyIdentity.on('login', () => {
+              document.location.href = '/admin/';
+            });
+          }
+        });
+      }
+    </script>
+    <header class="border-b border-line bg-paper">
+      <nav class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 gap-y-3 px-6 py-6">
+        <a href="/" class="flex items-center gap-3">
+          <img src="/images/logo-novitas.png" alt="Novitas" class="h-8 w-auto" />
+          <span class="font-display text-lg tracking-tight text-ink">Novitas.rs</span>
         </a>
-        <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-600">
-          <a href="/" class="hover:text-secondary">Početna</a>
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-ink/65">
+          <a href="/" class="story-link hover:text-ink">Početna</a>
           {navLinks.map((link) => (
-            <a href={link.href} class="hover:text-secondary">{link.label}</a>
+            <a href={link.href} class="story-link hover:text-ink">{link.label}</a>
           ))}
         </div>
       </nav>
     </header>
 
-    <main class="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
+    <main class="flex-1">
       <slot />
     </main>
 
-    <footer class="border-t border-slate-200 bg-primary-dark text-white">
-      <div class="mx-auto max-w-5xl px-4 py-8 text-sm text-white/70">
-        © {new Date().getFullYear()} Vidljiva.rs — Centar za razvojnu podršku i inicijativu NOVITAS
+    <footer class="border-t border-line">
+      <div
+        class="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-6 py-10 text-sm text-ink/55 sm:flex-row sm:items-center"
+      >
+        <span class="font-display text-base text-ink/70">Vidljiva.rs</span>
+        <p>© {new Date().getFullYear()} Centar za razvojnu podršku i inicijativu NOVITAS</p>
       </div>
     </footer>
   </body>

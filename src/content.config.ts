@@ -11,6 +11,7 @@ const blog = defineCollection({
     heroImage: z.string().optional(),
     category: z.enum(CATEGORY_NAMES).optional(),
     draft: z.boolean().default(false),
+    featured: z.string().optional(),
   }),
 });
 
@@ -20,6 +21,14 @@ const pages = defineCollection({
     title: z.string(),
     description: z.string(),
     heroImage: z.string().optional(),
+    videos: z
+      .array(
+        z.object({
+          name: z.string(),
+          url: z.string(),
+        })
+      )
+      .optional(),
   }),
 });
 

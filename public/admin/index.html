@@ -4,8 +4,64 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Content Manager</title>
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script>
+      // Sprečava automatski init dok ne registrujemo srpski prevod.
+      window.CMS_MANUAL_INIT = true;
+    </script>
+    <style>
+      /* Dugme "Pogledaj sajt" - nezavisno od Decap-ovog izgleda, da ga
+         ažuriranja CMS-a ne pokvare. Stoji na mestu ugašenog "Dodaj"
+         dugmeta, pored ikonice naloga. */
+      #view-site-link {
+        position: fixed;
+        top: 12px;
+        right: 64px;
+        z-index: 9999;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        border-radius: 999px;
+        background: #18161a;
+        color: #fbfaf8;
+        font: 600 13px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        text-decoration: none;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      }
+      #view-site-link:hover {
+        background: #810d70;
+      }
+    </style>
   </head>
   <body>
+    <a id="view-site-link" href="/" target="_blank" rel="noopener">Pogledaj sajt ↗</a>
     <script src="https://cdn.jsdelivr.net/npm/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    <script src="/admin/locale-sr.js"></script>
+    <script>
+      CMS.registerLocale('sr', window.srLocale);
+      CMS.init();
+
+      // Uklanja "Dodaj" dugme iz zaglavlja (traži po tekstu, ne po CSS
+      // klasi, jer se generisane klase menjaju pri svakom ažuriranju CMS-a).
+      function hideQuickAddButton() {
+        document.querySelectorAll('[role="button"][aria-haspopup="true"]').forEach((el) => {
+          if (el.textContent.trim() === 'Dodaj') {
+            el.style.display = 'none';
+          }
+        });
+      }
+      new MutationObserver(hideQuickAddButton).observe(document.body, { childList: true, subtree: true });
+
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on("init", (user) => {
+          if (!user) {
+            window.netlifyIdentity.on("login", () => {
+              document.location.href = "/admin/";
+            });
+          }
+        });
+      }
+    </script>
   </body>
 </html>

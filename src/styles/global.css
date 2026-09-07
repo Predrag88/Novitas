@@ -2,10 +2,85 @@
 @plugin "@tailwindcss/typography";
 
 /* Brand boje uzete direktno iz originalnog WordPress sajta
-   (Flatsome theme_mods: color_primary / color_secondary). */
+   (Flatsome theme_mods: color_primary / color_secondary). Koriste se
+   štedljivo — kao akcenat, ne kao dominantna površina. */
 @theme {
   --color-primary: #810d70;
   --color-primary-dark: #5e0952;
   --color-secondary: #c32b93;
   --color-secondary-light: #fdf1f9;
+  --color-ink: #18161a;
+  --color-paper: #fbfaf8;
+  --color-line: #e7e3df;
+
+  --font-display: "Fraunces", "Iowan Old Style", serif;
+  --font-body: "Archivo", "Helvetica Neue", sans-serif;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-body);
+  }
+}
+
+/* Nav i tekstualni linkovi: tanka linija koja se širi od centra na hover. */
+.story-link {
+  position: relative;
+}
+.story-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.2rem;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.25s ease;
+}
+.story-link:hover::after,
+.story-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* Jedinstveni dugmić stil korišćen svuda na sajtu. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.7rem 1.4rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+.btn:hover {
+  background: var(--color-primary);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* Eyebrow oznaka: sitan uppercase label sa tačkom akcenta. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+.eyebrow::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--color-secondary);
 }

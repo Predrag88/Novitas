@@ -7,7 +7,9 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "prebuild": "npm run optimize-images",
     "build": "astro build",
+    "optimize-images": "node scripts/optimize-images.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -20,6 +22,7 @@
     "esbuild": true
   },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.20"
+    "@tailwindcss/typography": "^0.5.20",
+    "sharp": "^0.35.4"
   }
 }

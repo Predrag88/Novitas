@@ -1,8 +1,9 @@
 ---
-title: "Javna tribina i završnica projekta"
-description: "https://www.pirotskevesti.rs/projekat-zene-u-fokusu-podrska-medijskoj-vidljivosti-ulazi-u-zavrsnu-fazu-realizacije/"
+title: Javna tribina i završnica projekta
+featured: ★
+description: https://www.pirotskevesti.rs/projekat-zene-u-fokusu-podrska-medijskoj-vidljivosti-ulazi-u-zavrsnu-fazu-realizacije/
 pubDate: 2024-09-13
-category: "Medijski prostor"
+category: Medijski prostor
 draft: false
 ---
 

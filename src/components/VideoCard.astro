@@ -1,0 +1,75 @@
+---
+interface Props {
+  name: string;
+  url: string;
+}
+
+const { name, url } = Astro.props;
+
+function getYouTubeId(youtubeUrl: string): string | null {
+  const match = youtubeUrl.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
+  return match ? match[1] : null;
+}
+
+const videoId = getYouTubeId(url);
+const thumbnail = videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : undefined;
+---
+
+<li class="group">
+  <button
+    type="button"
+    class="video-trigger relative block w-full overflow-hidden rounded-2xl border border-line bg-ink shadow-sm transition duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md"
+    data-video-id={videoId}
+    aria-label={`Pusti video: ${name}`}
+  >
+    <div class="relative aspect-video w-full">
+      {thumbnail && (
+        <img
+          src={thumbnail}
+          alt={name}
+          loading="lazy"
+          class="h-full w-full object-cover opacity-90 transition duration-500 ease-out group-hover:scale-[1.04] group-hover:opacity-100"
+        />
+      )}
+    </div>
+    <span
+      class="pointer-events-none absolute inset-0 flex items-center justify-center bg-ink/20 transition group-hover:bg-ink/10"
+    >
+      <span
+        class="flex h-14 w-14 items-center justify-center rounded-full bg-paper/95 text-primary shadow-lg transition duration-300 ease-out group-hover:scale-110"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="translate-x-0.5">
+          <path d="M5 3.5v13l12-6.5-12-6.5z"></path>
+        </svg>
+      </span>
+    </span>
+  </button>
+  <p class="font-display mt-3 text-lg text-ink">{name}</p>
+</li>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.video-trigger').forEach((button) => {
+    button.addEventListener('click', () => {
+      const videoId = button.dataset.videoId;
+      if (!videoId) return;
+
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+      iframe.title = button.getAttribute('aria-label') ?? 'YouTube video';
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      iframe.className = 'absolute inset-0 h-full w-full';
+      iframe.setAttribute('frameborder', '0');
+
+      const wrapper = button.querySelector('.aspect-video');
+      if (wrapper) {
+        wrapper.innerHTML = '';
+        wrapper.appendChild(iframe);
+      }
+      const overlay = button.querySelector('span');
+      overlay?.remove();
+      button.disabled = true;
+      button.classList.add('cursor-default', 'hover:translate-y-0', 'hover:shadow-sm');
+    });
+  });
+</script>

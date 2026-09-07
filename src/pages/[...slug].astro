@@ -1,5 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Section from '../components/Section.astro';
+import VideoCard from '../components/VideoCard.astro';
 import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -12,22 +14,37 @@ export async function getStaticPaths() {
 
 const { page } = Astro.props;
 const { Content } = await render(page);
+const videos = page.data.videos ?? [];
 ---
 
 <Layout title={`${page.data.title} — Vidljiva.rs`} description={page.data.description}>
-  <article>
-    <h1 class="mb-8 text-3xl font-bold tracking-tight">{page.data.title}</h1>
+  {videos.length > 0 ? (
+    <Section>
+      <p class="eyebrow">Dokumentarni serijal</p>
+      <h1 class="mt-4 mb-4 font-display text-3xl tracking-tight text-ink sm:text-4xl">{page.data.title}</h1>
+      <p class="max-w-xl leading-relaxed text-ink/65">{page.data.description}</p>
 
-    {page.data.heroImage && (
-      <img
-        src={page.data.heroImage}
-        alt={page.data.title}
-        class="mb-8 w-full rounded-lg object-cover"
-      />
-    )}
+      <ul class="mt-12 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        {videos.map((video) => (
+          <VideoCard name={video.name} url={video.url} />
+        ))}
+      </ul>
+    </Section>
+  ) : (
+    <Section narrow>
+      <article>
+        <h1 class="mb-8 font-display text-3xl tracking-tight text-ink sm:text-4xl">{page.data.title}</h1>
 
-    <div class="prose prose-slate max-w-none prose-a:text-secondary prose-a:no-underline hover:prose-a:underline">
-      <Content />
-    </div>
-  </article>
+        {page.data.heroImage && (
+          <div class="mb-10 overflow-hidden rounded-2xl">
+            <img src={page.data.heroImage} alt={page.data.title} class="w-full object-cover" />
+          </div>
+        )}
+
+        <div class="prose prose-neutral max-w-none prose-headings:font-display prose-a:text-primary prose-a:no-underline hover:prose-a:underline">
+          <Content />
+        </div>
+      </article>
+    </Section>
+  )}
 </Layout>

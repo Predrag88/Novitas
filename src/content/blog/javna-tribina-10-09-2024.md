@@ -1,9 +1,12 @@
 ---
-title: "Javna tribina 10.09.2024."
-description: "Javna tribina Kao završna aktivnost na projektu , organizovana je javna tribina na kojoj su prezentovani rezultati projekta , uz javnu diskusiju učesnika."
+title: Javna tribina 10.09.2024.
+featured: ★
+description: Javna tribina Kao završna aktivnost na projektu , organizovana je
+  javna tribina na kojoj su prezentovani rezultati projekta , uz javnu diskusiju
+  učesnika.
 pubDate: 2024-09-10
-heroImage: "/images/posts/IMG-ab8187b61d8ae87c41a6445468318cd3-V.jpg"
-category: "Radionice"
+heroImage: /images/posts/IMG-ab8187b61d8ae87c41a6445468318cd3-V.jpg
+category: Radionice
 draft: false
 ---
 

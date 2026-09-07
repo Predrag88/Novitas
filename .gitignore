@@ -5,3 +5,4 @@ dist/
 .DS_Store
 *.log
 __pycache__/
+backup-*.tar.gz

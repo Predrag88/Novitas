@@ -5,6 +5,8 @@ backend:
   name: git-gateway
   branch: main
 
+locale: "sr"
+
 media_folder: "public/images/posts"
 public_folder: "/images/posts"
 
@@ -16,18 +18,56 @@ collections:
     slug: "{{slug}}"
     extension: "md"
     format: "frontmatter"
+    editor:
+      preview: false
+    summary: "{{title}} {{featured}}"
+    view_filters:
+      - label: "★ Izdvojeno na početnoj"
+        field: featured
+        pattern: "★"
     fields:
-      - { label: "Naslov", name: "title", widget: "string" }
-      - { label: "Opis", name: "description", widget: "text" }
-      - { label: "Datum objave", name: "pubDate", widget: "datetime" }
-      - { label: "Naslovna slika", name: "heroImage", widget: "image", required: false }
+      - label: "Naslov"
+        name: "title"
+        widget: "string"
+        hint: "Glavni naslov članka. Prikazuje se na vrhu stranice, na listi članaka i u naslovu browser taba."
+      - label: "★ Izdvojeno na početnoj"
+        name: "featured"
+        widget: "select"
+        required: false
+        default: ""
+        options:
+          - { label: "— Nije izdvojeno —", value: "" }
+          - { label: "★ Prikaži na početnoj", value: "★" }
+        hint: "Izaberite „★ Prikaži na početnoj” da se ovaj članak prikaže u sekciji „Radionice” na početnoj strani. Prikazuju se najviše 2 najnovija označena članka. Zvezdica se odmah vidi pored naslova u listi članaka (levo), bez potrebe da otvarate svaki članak."
+      - label: "Opis"
+        name: "description"
+        widget: "text"
+        pattern: ["^.{1,180}$", "Opis mora imati najviše 180 karaktera."]
+        hint: "Kratak opis članka i o čemu se u njemu radi - najviše 180 karaktera (to je dovoljno za rečenicu ili dve). NE prikazuje se unutar samog članka, već ispod naslova na listi članaka i kao opis kad se link deli na Google-u ili društvenim mrežama."
+      - label: "Datum objave"
+        name: "pubDate"
+        widget: "datetime"
+        hint: "Određuje redosled na sajtu - noviji datum znači da se članak prikazuje pri vrhu liste."
+      - label: "Naslovna slika"
+        name: "heroImage"
+        widget: "image"
+        required: false
+        hint: "Slika koja se prikazuje na vrhu članka i kao fotografija na listi. Nije obavezno - bez nje, karta članka dobija samo tanku traku u bojama sajta umesto slike."
       - label: "Kategorija"
         name: "category"
         widget: "select"
         required: false
         options: ["Radionice", "Medijski prostor", "Vesti", "Dokumenti"]
-      - { label: "Draft", name: "draft", widget: "boolean", default: false }
-      - { label: "Sadržaj", name: "body", widget: "markdown" }
+        hint: "Određuje na kojoj podstranici kategorije (npr. /kategorija/vesti/) će se članak pojaviti."
+      - label: "Radna verzija"
+        name: "draft"
+        widget: "boolean"
+        default: false
+        hint: "Ako je UKLJUČENO, članak se NE prikazuje na sajtu - koristite ovo dok pišete tekst. Isključite kad je članak gotov i spreman da ga svi vide."
+      - label: "Sadržaj"
+        name: "body"
+        widget: "markdown"
+        hint: "Ovde ide pun tekst članka - ovo posetioci čitaju kad otvore članak. Alatke iznad polja služe za podebljano, kurziv, naslove, liste i ubacivanje slika unutar teksta."
 
   - name: "pages"
     label: "Stranice"
@@ -36,8 +76,24 @@ collections:
     slug: "{{slug}}"
     extension: "md"
     format: "frontmatter"
+    editor:
+      preview: false
     fields:
-      - { label: "Naslov", name: "title", widget: "string" }
-      - { label: "Opis", name: "description", widget: "text" }
-      - { label: "Naslovna slika", name: "heroImage", widget: "image", required: false }
-      - { label: "Sadržaj", name: "body", widget: "markdown" }
+      - label: "Naslov"
+        name: "title"
+        widget: "string"
+        hint: "Naslov stranice. Prikazuje se na vrhu stranice i u naslovu browser taba."
+      - label: "Opis"
+        name: "description"
+        widget: "text"
+        pattern: ["^.{1,180}$", "Opis mora imati najviše 180 karaktera."]
+        hint: "Kratak opis stranice i o čemu se na njoj radi - najviše 180 karaktera. Ne prikazuje se na samoj stranici - koristi se kao opis kad se link deli na Google-u ili društvenim mrežama."
+      - label: "Naslovna slika"
+        name: "heroImage"
+        widget: "image"
+        required: false
+        hint: "Slika koja se prikazuje na vrhu stranice, ispod naslova. Nije obavezno."
+      - label: "Sadržaj"
+        name: "body"
+        widget: "markdown"
+        hint: "Ovde ide pun tekst stranice - ono što posetioci čitaju. Alatke iznad polja služe za podebljano, kurziv, naslove, liste i ubacivanje slika."

@@ -6,29 +6,75 @@ interface Props {
   pubDate: Date;
   heroImage?: string;
   category?: string;
+  card?: boolean;
 }
 
-const { slug, title, description, pubDate, heroImage, category } = Astro.props;
+const { slug, title, description, pubDate, heroImage, category, card = false } = Astro.props;
 
-const dateFormatter = new Intl.DateTimeFormat('sr-RS', { day: 'numeric', month: 'long', year: 'numeric' });
+const dateFormatter = new Intl.DateTimeFormat('sr-Latn-RS', { day: 'numeric', month: 'long', year: 'numeric' });
 ---
 
-<li class="group overflow-hidden rounded-lg border border-slate-200 transition hover:shadow-md">
-  <a href={`/blog/${slug}/`} class="block">
-    {heroImage && (
-      <img src={heroImage} alt={title} class="h-48 w-full object-cover" loading="lazy" />
-    )}
-    <div class="p-5">
-      <div class="mb-2 flex items-center gap-3 text-xs uppercase tracking-wide text-slate-500">
-        <span>{dateFormatter.format(pubDate)}</span>
-        {category && (
-          <span class="rounded-full bg-secondary-light px-2 py-0.5 font-medium text-secondary">
-            {category}
-          </span>
-        )}
+{card ? (
+  <li class="group h-full">
+    <a
+      href={`/blog/${slug}/`}
+      class="flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-paper shadow-sm transition duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md"
+    >
+      {heroImage ? (
+        <img
+          src={heroImage}
+          alt={title}
+          class="h-48 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+          loading="lazy"
+        />
+      ) : (
+        <div class="h-1.5 w-full bg-gradient-to-r from-primary to-secondary"></div>
+      )}
+      <div class="flex flex-1 flex-col p-5 sm:p-6">
+        <div class="mb-2 flex items-center gap-3 text-xs text-ink/45">
+          <span>{dateFormatter.format(pubDate)}</span>
+          {category && (
+            <>
+              <span class="h-1 w-1 rounded-full bg-ink/20"></span>
+              <span class="font-semibold uppercase tracking-wide text-primary">{category}</span>
+            </>
+          )}
+        </div>
+        <h2 class="font-display mb-2 text-xl leading-snug text-ink group-hover:text-primary">
+          {title}
+        </h2>
+        <p class="line-clamp-2 text-sm leading-relaxed text-ink/60">{description}</p>
       </div>
-      <h2 class="mb-2 text-lg font-semibold leading-snug group-hover:text-primary group-hover:underline">{title}</h2>
-      <p class="line-clamp-3 text-sm text-slate-600">{description}</p>
-    </div>
-  </a>
-</li>
+    </a>
+  </li>
+) : (
+  <li class="group">
+    <a href={`/blog/${slug}/`} class="block">
+      {heroImage && (
+        <div class="overflow-hidden rounded-2xl">
+          <img
+            src={heroImage}
+            alt={title}
+            class="h-56 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+            loading="lazy"
+          />
+        </div>
+      )}
+      <div class="pt-5">
+        <div class="mb-2 flex items-center gap-3 text-xs text-ink/45">
+          <span>{dateFormatter.format(pubDate)}</span>
+          {category && (
+            <>
+              <span class="h-1 w-1 rounded-full bg-ink/20"></span>
+              <span class="font-semibold uppercase tracking-wide text-primary">{category}</span>
+            </>
+          )}
+        </div>
+        <h2 class="font-display mb-2 text-xl leading-snug text-ink group-hover:text-primary">
+          {title}
+        </h2>
+        <p class="line-clamp-2 text-sm leading-relaxed text-ink/60">{description}</p>
+      </div>
+    </a>
+  </li>
+)}
