@@ -7,7 +7,7 @@ interface Props {
   description?: string;
 }
 
-const { title, description = 'Vidljiva.rs — blog o medijskoj vidljivosti žena.' } = Astro.props;
+const { title, description = 'Novitas.rs — blog o medijskoj vidljivosti žena.' } = Astro.props;
 
 const navLinks = [
   { href: '/blog/', label: 'Blog' },
@@ -28,7 +28,9 @@ const navLinks = [
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -50,20 +52,55 @@ const navLinks = [
         });
       }
     </script>
-    <header class="border-b border-line bg-paper">
-      <nav class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 gap-y-3 px-6 py-6">
+    <header class="relative border-b border-line bg-paper">
+      <nav class="mx-auto flex max-w-6xl items-center justify-between gap-x-8 px-6 py-6">
         <a href="/" class="flex items-center gap-3">
           <img src="/images/logo-novitas.png" alt="Novitas" class="h-8 w-auto" />
           <span class="font-display text-lg tracking-tight text-ink">Novitas.rs</span>
         </a>
-        <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-ink/65">
+        <div class="hidden flex-wrap items-center gap-x-6 gap-y-2 text-sm text-ink/65 md:flex">
           <a href="/" class="story-link hover:text-ink">Početna</a>
           {navLinks.map((link) => (
             <a href={link.href} class="story-link hover:text-ink">{link.label}</a>
           ))}
         </div>
+        <button
+          id="nav-toggle"
+          type="button"
+          class="nav-toggle md:hidden"
+          aria-expanded="false"
+          aria-controls="mobile-nav"
+          aria-label="Otvori meni"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </nav>
+      <div id="mobile-nav" class="border-t border-line bg-paper px-6 py-4 md:hidden" hidden>
+        <div class="flex flex-col gap-1 text-sm text-ink/70">
+          <a href="/" class="rounded-lg px-2 py-2.5 hover:bg-ink/5 hover:text-ink">Početna</a>
+          {navLinks.map((link) => (
+            <a href={link.href} class="rounded-lg px-2 py-2.5 hover:bg-ink/5 hover:text-ink">{link.label}</a>
+          ))}
+        </div>
+      </div>
     </header>
+    <script>
+      const navToggle = document.getElementById('nav-toggle');
+      const mobileNav = document.getElementById('mobile-nav');
+      navToggle?.addEventListener('click', () => {
+        const isOpen = navToggle.getAttribute('aria-expanded') === 'true';
+        navToggle.setAttribute('aria-expanded', String(!isOpen));
+        if (mobileNav) mobileNav.hidden = isOpen;
+      });
+      mobileNav?.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('click', () => {
+          navToggle?.setAttribute('aria-expanded', 'false');
+          mobileNav.hidden = true;
+        });
+      });
+    </script>
 
     <main class="flex-1">
       <slot />
@@ -73,7 +110,7 @@ const navLinks = [
       <div
         class="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-6 py-10 text-sm text-ink/55 sm:flex-row sm:items-center"
       >
-        <span class="font-display text-base text-ink/70">Vidljiva.rs</span>
+        <span class="font-display text-base text-ink/70">Novitas.rs</span>
         <p>© {new Date().getFullYear()} Centar za razvojnu podršku i inicijativu NOVITAS</p>
       </div>
     </footer>
